@@ -4,6 +4,7 @@
 int balance = 100;
 pthread_mutex_t lock, lockA, lockB;
 
+// Synchronization mechanism: mutex protects the shared balance (handles race condition)
 void *updateBalance(void *arg) {
     pthread_mutex_lock(&lock);
     balance += 10;
@@ -12,6 +13,7 @@ void *updateBalance(void *arg) {
     return NULL;
 }
 
+// Deadlock prevention: every thread locks A before B, so no circular wait can form
 void *safeThread(void *arg) {
     pthread_mutex_lock(&lockA);
     pthread_mutex_lock(&lockB);
@@ -19,6 +21,23 @@ void *safeThread(void *arg) {
     pthread_mutex_unlock(&lockB);
     pthread_mutex_unlock(&lockA);
     return NULL;
+}
+
+// Round-robin scheduler simulation using arrays
+void roundRobin() {
+    int burst[3] = {6, 4, 8}, rem[3] = {6, 4, 8}, q = 3, t = 0, done = 0;
+    printf("\nRound-Robin Scheduler (quantum=%d)\n", q);
+    while (done < 3) {
+        for (int i = 0; i < 3; i++) {
+            if (rem[i] > 0) {
+                int s = rem[i] < q ? rem[i] : q;
+                printf("P%d: t=%d-%d\n", i + 1, t, t + s);
+                t += s;
+                rem[i] -= s;
+                if (rem[i] == 0) { done++; printf("P%d completed\n", i + 1); }
+            }
+        }
+    }
 }
 
 int main() {
@@ -42,5 +61,7 @@ int main() {
     pthread_mutex_destroy(&lock);
     pthread_mutex_destroy(&lockA);
     pthread_mutex_destroy(&lockB);
+
+    roundRobin();
     return 0;
 }
