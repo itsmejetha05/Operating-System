@@ -2,7 +2,7 @@
 #include <pthread.h>
 
 int balance = 100;
-pthread_mutex_t lock;
+pthread_mutex_t lock, lockA, lockB;
 
 void *updateBalance(void *arg) {
     pthread_mutex_lock(&lock);
@@ -12,10 +12,21 @@ void *updateBalance(void *arg) {
     return NULL;
 }
 
+void *safeThread(void *arg) {
+    pthread_mutex_lock(&lockA);
+    pthread_mutex_lock(&lockB);
+    printf("Thread %d acquired both locks safely\n", *(int *)arg);
+    pthread_mutex_unlock(&lockB);
+    pthread_mutex_unlock(&lockA);
+    return NULL;
+}
+
 int main() {
     pthread_t t1, t2, t3;
     int id1 = 1, id2 = 2, id3 = 3;
     pthread_mutex_init(&lock, NULL);
+    pthread_mutex_init(&lockA, NULL);
+    pthread_mutex_init(&lockB, NULL);
 
     printf("=== Synchronized Balance Update (3 threads) ===\n");
     pthread_create(&t1, NULL, updateBalance, &id1);
@@ -23,6 +34,13 @@ int main() {
     pthread_create(&t3, NULL, updateBalance, &id3);
     pthread_join(t1, NULL); pthread_join(t2, NULL); pthread_join(t3, NULL);
 
+    printf("\n=== Deadlock Prevention (consistent lock order) ===\n");
+    pthread_create(&t1, NULL, safeThread, &id1);
+    pthread_create(&t2, NULL, safeThread, &id2);
+    pthread_join(t1, NULL); pthread_join(t2, NULL);
+
     pthread_mutex_destroy(&lock);
+    pthread_mutex_destroy(&lockA);
+    pthread_mutex_destroy(&lockB);
     return 0;
 }
