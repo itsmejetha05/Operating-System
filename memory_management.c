@@ -7,7 +7,7 @@
 int refs[] = {1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5};   // page reference stream
 int n = sizeof(refs) / sizeof(refs[0]);
 
-// FIFO page replacement: evicts the oldest-loaded page
+// FIFO page replacement: dismiss the oldest-loaded page
 void fifo() {
     int frame[FRAMES], faults = 0, front = 0;
     for (int i = 0; i < FRAMES; i++) frame[i] = -1;
@@ -54,9 +54,9 @@ void lru() {
 
 int main() {
     printf("Page Size=%d, Frames=%d\n\n", PAGE_SIZE, FRAMES);
-    printf("=== FIFO Page Replacement ===\n");
+    printf("--- FIFO Page Replacement ---\n");
     fifo();
-    printf("=== LRU Page Replacement ===\n");
+    printf("---LRU Page Replacement ---\n");
     lru();
     return 0;
 }
