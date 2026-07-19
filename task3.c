@@ -74,10 +74,18 @@ void checkExecute(char *f, User *u) { Meta m; readMeta(f, &m);
 }
 
 int main() {
-    User alice, carol, bob;
-    login("alice", "alice123", &alice);
-    login("carol", "carol123", &carol);
-    login("bob", "bob123", &bob);
+    User alice, carol, bob, imposter;
+
+    // authentication is now enforced: a failed login blocks every operation for
+    // that identity, rather than just being checked and then ignored
+    if (!login("alice", "alice123", &alice)) { printf("Login failed for alice.\n"); return 1; }
+    if (!login("carol", "carol123", &carol)) { printf("Login failed for carol.\n"); return 1; }
+    if (!login("bob", "bob123", &bob))       { printf("Login failed for bob.\n"); return 1; }
+
+    // proves enforcement actually blocks something, not just permission checks
+    printf("-- AUTHENTICATION (wrong password) --\n");
+    if (!login("bob", "wrongpass", &imposter))
+        printf("Login denied for bob with wrong password, as expected.\n");
 
     // owner=rwx, group=r-x, other=--- : lets us test all three classes and bits
     createFile("secret.txt", &alice, 0750, 1);
